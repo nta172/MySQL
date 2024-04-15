@@ -72,6 +72,7 @@ WHERE		(SUBSTRING_INDEX(FullName, ' ', -1)) LIKE 'D%o' ;
 /*SUBSTRING_INDEX  để tách chuỗi FullName -1 là trả về phần tên*/
 
 #Question 12 : Xóa tất cả các exam được tạo trước ngày 20/12/2023
+# Cách 2 : Cài ON DELETE CASCADE là xóa trực tiếp luôn ở 2 dữ liệu bảng ko cần thông qua bảng ExamQuestion
 DELETE 
 FROM Exam
 WHERE CreateDate < '2023-12-20';
@@ -84,7 +85,8 @@ WHERE		ExamID IN (SELECT ExamID
 						WHERE CreateDate < '2023-12-20');
 
 SELECT 		*
-FROM 		Exam ;
+FROM 		Exam 
+WHERE CreateDate < '2023-12-20';
 #Question 13 : Xóa tất cả các question có nội dung bắt đầu bằng từ "câu hỏi"
 -- Question 13: xóa tất cả các Account có FullName bắt đầu bằng 2 từ "Nguyễn Hải"
 
@@ -111,7 +113,7 @@ FROM 		Question;
 -- Tắt chế độ kiểm tra ràng buộc khóa ngoại (foreign key constraints)
 SET FOREIGN_KEY_CHECKS=0;
 -- Xóa các bản ghi trong các bảng có liên quan
-DELETE 
+DELETE
 FROM GroupAccount 
 WHERE AccountID IN (SELECT AccountID 
 					FROM `Account` 
@@ -133,9 +135,11 @@ WHERE CreatorID IN (SELECT AccountID
 
 -- Xóa tài khoản từ bảng Account
 DELETE 
-FROM `Account` 
-WHERE FullName LIKE 'Nguyễn Hải%';
+FROM 	`Account` 
+WHERE 	FullName LIKE 'Nguyễn Hải%';
 
+SELECT * FROM `Account`;
+# Cài đặt ON DELETE CASCADE phù hợp các trường để xóa bỏ 
 -- Bật lại chế độ kiểm tra ràng buộc khóa ngoại
 SET FOREIGN_KEY_CHECKS=1;
 
