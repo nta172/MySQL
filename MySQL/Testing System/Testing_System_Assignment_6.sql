@@ -166,7 +166,7 @@ CREATE PROCEDURE sp_DeleteExamWithID (IN in_ExamID TINYINT UNSIGNED)
 DELIMITER ;
 CALL sp_DeleteExamWithID(7);
 
-select * from exam;
+SELECT * FROM exam;
 # Question 10: Tìm ra các exam được tạo từ 3 năm trước và xóa các exam đó đi, sau đó in số lượng record đã remove từ các table liên quan
 -- trong khi removing
 DROP PROCEDURE IF EXISTS sp_DeleteUser3Years;
@@ -185,10 +185,52 @@ BEGIN
     );
 END$$
 DELIMITER ;
--- Question 11: Viết store cho phép người dùng xóa phòng ban bằng cách người dùng
--- nhập vào tên phòng ban và các account thuộc phòng ban đó sẽ được chuyển về phòng
--- ban default là phòng ban chờ việc
-
+-- Cách trên sử dụng ON DELETE
+# Cách đúng :
+DROP PROCEDURE IF EXISTS SP_DeleteExamBefore3Year;
+DELIMITER $$
+	CREATE PROCEDURE SP_DeleteExamBefore3Year()
+		BEGIN
+	-- Khai báo biến sử dụng trong chương trình
+		DECLARE v_ExamID TINYINT UNSIGNED;
+		DECLARE v_CountExam TINYINT UNSIGNED DEFAULT 0;
+		DECLARE v_CountExamquestion TINYINT UNSIGNED DEFAULT 0;
+		DECLARE i TINYINT UNSIGNED DEFAULT 1;
+		DECLARE v_print_Del_info_Exam VARCHAR(50) ;
+	-- Tạo bảng tạm
+		DROP TABLE IF EXISTS ExamIDBefore3Year_Temp;
+		CREATE TABLE ExamIDBefore3Year_Temp(
+					 ID INT PRIMARY KEY AUTO_INCREMENT,
+					 ExamID INT);
+	-- Insert dữ liệu bảng tạm
+		INSERT INTO ExamIDBefore3Year_Temp(ExamID)
+		SELECT	 	E.ExamID 
+        FROM 		Exam E 
+        WHERE 		(YEAR(NOW()) - year(E.CreateDate)) >2;
+		-- Lấy số lượng số Exam và ExamQuestion cần xóa.
+		SELECT COUNT(1) INTO v_CountExam FROM ExamIDBefore3Year_Temp;
+		SELECT COUNT(1) INTO v_CountExamquestion FROM ExamQuestion Ex
+		INNER JOIN ExamIDBefore3Year_Temp ET ON EX.ExamID = ET.ExamID;
+	-- Thực hiện xóa trên bảng Exam và ExamQuestion sử dụng Procedure đã tạo ở Question9 bên trên
+		WHILE (i <= v_CountExam) DO
+		SELECT ExamID INTO v_ExamID 
+        FROM ExamIDBefore3Year_Temp 
+        WHERE ID = i;
+		CALL sp_DeleteExamWithID(v_ExamID);
+		SET i = i +1;
+		END WHILE;
+	-- In câu thông báo
+		SELECT CONCAT("DELETE ",v_CountExam," IN Exam AND ", v_CountExamquestion ," IN ExamQuestion") INTO v_print_Del_info_Exam;
+		SIGNAL SQLSTATE '45000'
+		SET MESSAGE_TEXT = v_print_Del_info_Exam ;
+	-- Xóa bảng tạm sau khi hoàn thành
+		DROP TABLE IF EXISTS ExamIDBefore3Year_Temp;
+		END$$
+		DELIMITER ;
+	-- Run Procedure
+		CALL SP_DeleteExamBefore3Year();
+-- Question 11: Viết store cho phép người dùng xóa phòng ban bằng cách người dùng nhập vào tên phòng ban 
+-- và các account thuộc phòng ban đó sẽ được chuyển về phòng ban default là phòng ban chờ việc
 DROP PROCEDURE IF EXISTS sp_DeleteDepartment;
 DELIMITER $$
 CREATE PROCEDURE sp_DeleteDepartment
@@ -205,8 +247,27 @@ BEGIN
 END$$
 DELIMITER ;
 
--- Question 12: Viết store để in ra mỗi tháng có bao nhiêu câu hỏi được tạo trong năm nay
+# Cách 2 :
+DROP PROCEDURE IF EXISTS sp_DelDepFromName;
+DELIMITER $$
+	CREATE PROCEDURE sp_DelDepFromName(IN var_DepartmentName VARCHAR(50))
+	BEGIN
+		DECLARE v_DepartmentID VARCHAR(50);
+		SELECT 	D1.DepartmentID INTO v_DepartmentID 
+        FROM 	Department D1 
+        WHERE 	D1.DepartmentName = var_DepartmentName;
+		UPDATE 	`Account` A 
+        SET 	A.DepartmentID = '11' 
+        WHERE 	A.DepartmentID = v_DepartmentID;
+		DELETE 
+        FROM 	Department D
+        WHERE 	D.DepartmentName = var_DepartmentName;
+	END$$
+DELIMITER ;
+CALL sp_DelDepFromName('Marketing');
 
+SELECT * FROM Department;
+-- Question 12: Viết store để in ra mỗi tháng có bao nhiêu câu hỏi được tạo trong năm nay
 DROP PROCEDURE IF EXISTS sp_CountQuesInMonth;
 DELIMITER $$
 CREATE PROCEDURE sp_CountQuesInMonth()
@@ -264,3 +325,18 @@ END$$
 DELIMITER ;
 
 CALL sp_CountQuesPrevious6Month();
+# 1. Nhập vào DepartmentID sau đó sử dụng function để in ra DepartmentName
+SET GLOBAL log_bin_trust_function_creators = 1;
+DROP FUNCTION IF EXISTS function_getNameDep;
+DELIMITER $$
+CREATE FUNCTION function_getNameDep (var1 TINYINT) RETURNS VARCHAR(100)
+BEGIN
+	DECLARE var_Name VARCHAR(100);
+	SET 	var_Name ='';
+	SELECT 	D.DepartmentName INTO var_Name 
+	FROM 	Department D
+	WHERE 	D.DepartmentID = var1;
+	RETURN 	var_Name;
+END$$
+DELIMITER ;
+SELECT function_getNameDep(3);

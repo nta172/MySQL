@@ -233,7 +233,7 @@ VALUES                  (N'Trả lời 01'      , 1 , 0 ),
 
 -- Add data Exam
 INSERT INTO Exam   ( `Code` , Title , CategoryID , Duration , CreatorID , CreateDate )
-VALUES                  ('VTIQ001' , N'Đề thi C#'        , 1  , 60  , 5  , '2023-04-05'),   
+VALUES                  ('VTIQ001' , N'Đề thi C#'        , 1  , 60  , 5  , '2020-04-05'),   
                         ('VTIQ002' , N'Đề thi PHP'       , 10 , 60  , 2  , '2023-04-05'),
                         ('VTIQ003' , N'Đề thi C++'       , 9  , 120 , 2  , '2023-04-07'),
                         ('VTIQ004' , N'Đề thi Java'      , 6  , 60  , 3  , '2024-04-08'),
