@@ -16,7 +16,7 @@ DELIMITER $$
 DELIMITER ;
 
 INSERT INTO `Group` (`GroupName`, `CreatorID`, `CreateDate`)
-VALUES ('2', '1', '2020-04-10 00:00:00');
+VALUES ('2', '1', '2023-04-10 00:00:00');
 #Question 2 : Tạo trigger KHÔNG cho phép người dùng thêm bất kì User nào vào department 'Sale' nữa, 
 -- khi thêm thì hiện ra thông báo "Department "Sale" cannot add more user"
 DROP TRIGGER IF EXISTS Trigger_NotAddUserToSale;
@@ -36,7 +36,7 @@ DELIMITER $$
      END$$       
 DELIMITER ;
 
-INSERT INTO `account` (`Email`, `Username`, `FullName`, `DepartmentID`, `PositionID`, `CreateDate`)
+INSERT INTO `Account` (`Email`, `Username`, `FullName`, `DepartmentID`, `PositionID`, `CreateDate`)
 VALUES ('1','1', '1', '2', '1', '2023-11-13 00:00:00');
 # Question 3 : Cấu hình 1 group có nhiều nhất là 5 user
 DROP TRIGGER IF EXISTS Trigger_CheckToAddAccountToGroup;
@@ -139,7 +139,7 @@ DELIMITER $$
         SELECT 		COUNT(1) INTO v_CountAnsCorrects
         FROM		Answer A
         WHERE		A.QuestionID = NEW.QuestionID AND A.isCorrect = NEW.isCorrect;
-        IF (v_CountAnsInQues > 4) AND (v_CountAnsCorrects > 2) THEN
+        IF (v_CountAnsInQues > 4) OR (v_CountAnsCorrects > 2) THEN
 			SIGNAL SQLSTATE '12345'
             SET MESSAGE_TEXT = 'Cannot insert more data please check again!';
         END IF;    
@@ -147,7 +147,8 @@ DELIMITER $$
 DELIMITER ;
 
 INSERT INTO Answer (`Content`, `QuestionID`, `isCorrect`) 
-VALUES ('Trả lời 11', '11', 1);
+VALUES ('Trả lời 11', '1', 1);
+SELECT * FROM Answer;
 
 # Question 8: Viết trigger sửa lại dữ liệu cho đúng:
 -- Nếu người dùng nhập vào gender của account là nam, nữ, chưa xác định
@@ -208,7 +209,7 @@ DELIMITER $$
 DELIMITER ;
 UPDATE 	Question 
 SET 	`Content` = 'Question VTI 2599 lL6 1' 
-WHERE 	(`QuestionID` = '11');
+WHERE 	(`QuestionID` = '1');
 
 # Trường hợp DELETE :
 DROP TRIGGER IF EXISTS Trg_CheckBefDeleteQues;
@@ -230,7 +231,7 @@ DELIMITER $$
 DELIMITER ;
 DELETE 
 FROM 	Question 
-WHERE 	(`QuestionID` = '11');
+WHERE 	(`QuestionID` = '1');
 
 select * from question;
 #Question 12 : Lấy ra thông tin exam trong đó:
@@ -245,7 +246,6 @@ SELECT E.ExamID, E.`Code`, E.Title , CASE
 		ELSE 'Longtime'
 END AS Duration, E.CreateDate, E.Duration
 FROM Exam E;
-;
 
 # Question 13: Thống kê số account trong mỗi group và in ra thêm 1 column nữa có tên
 -- là the_number_user_amount và mang giá trị được quy định như sau:
@@ -256,8 +256,8 @@ FROM Exam E;
 SELECT 		GA.GroupID, COUNT(GA.GroupID),
 			CASE
 				WHEN COUNT(GA.GroupID) <= 5 THEN 'Few'
-                WHEN COUNT(GA.GroupID) > 20 THEN 'Higher'
-			ELSE 'Normal'
+                WHEN 5 < COUNT(GA.GroupID) <= 20 THEN 'Normal'
+			ELSE 'Higher'
             END AS 'the_number_user_amount'
 FROM		GroupAccount GA
 GROUP BY	GA.GroupID;
