@@ -27,7 +27,7 @@ CREATE TABLE `Account` (
     Email			VARCHAR(50) NOT NULL UNIQUE KEY,
     Username		VARCHAR(50) NOT NULL UNIQUE KEY,
     FullName		NVARCHAR(50) NOT NULL,
-    DepartmentID	TINYINT UNSIGNED NOT NULL,
+    DepartmentID	TINYINT UNSIGNED, #NOT NULL
     PositionID		TINYINT UNSIGNED NOT NULL,
     CreateDate		DATETIME DEFAULT NOW(),
     
@@ -140,7 +140,8 @@ VALUES 				(N'Marketing'),
                     (N'Phó giám đốc'),
                     (N'Giám đốc'),
                     (N'Thư kí'),
-                    (N'Bán hàng');
+                    (N'Bán hàng'),
+                    (N'Waiting Department');
  
 -- Add data Position 
 INSERT INTO `Position` (PositionName)
