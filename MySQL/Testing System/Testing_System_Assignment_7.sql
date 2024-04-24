@@ -48,7 +48,7 @@ DELIMITER $$
 		DECLARE var_CountGroupID TINYINT;
 		SELECT 	COUNT(GA.GroupID) INTO var_CountGroupID
         FROM 	GroupAccount	GA
-        WHERE	GA.GroupID = NEW.GroupID;
+        WHERE	GA.AccountID = NEW.AccontID;
         IF (var_CountGroupID > 5) THEN
 			SIGNAL SQLSTATE '12345'
             SET MESSAGE_TEXT = 'Cannot add more User to this Group';
@@ -57,7 +57,7 @@ DELIMITER $$
 DELIMITER ;
 
 INSERT INTO GroupAccount (`GroupID`, `AccountID`, `JoinDate`)
-VALUES (1, 1, '2020-05-11 00:00:00');
+VALUES (1, 6, '2020-05-11 00:00:00');
 # Question 4 : Cấu hình 1 bài thi có nhiều nhất là 10 question
 DROP TRIGGER IF EXISTS Trigger_LimitQuesNumInExam10;
 DELIMITER $$
@@ -66,7 +66,7 @@ DELIMITER $$
     FOR EACH ROW
     BEGIN
 		DECLARE 	v_CountQuesInExam TINYINT;
-        SELECT 		COUNT(EQ.ExamID) INTO v_CountQuesInExam
+        SELECT 		COUNT(EQ.QuestionID) INTO v_CountQuesInExam
         FROM		ExamQuestion EQ
         WHERE		EQ.ExamID = NEW.ExamID;
         IF (v_CountQuesInExam > 10) THEN
@@ -77,7 +77,7 @@ DELIMITER $$
 DELIMITER ;
 
 INSERT INTO `ExamQuestion`(`ExamID`, `QuestionID`) 
-VALUES (6, 2);
+VALUES (2, 3);
 # Question 5 : Tạo trigger không cho phép người dùng xóa tài khoản có email là admin@gmail.com
 -- (đây là tài khoản admin, không cho phép user xóa), còn lại các tài khoản khác thì sẽ xóa tất cả 
 -- các thông tin liên quan tới user đó
@@ -125,6 +125,8 @@ SELECT * FROM `Account`;
 SELECT * FROM Department;
 # Question 7: Cấu hình 1 bài thi chỉ cho phép user tạo tối đa 4 answers cho mỗi question, 
 -- trong đó có tối đa 2 đáp án đúng.
+
+# Cách tác giả =)) hơi lỏ
 DROP TRIGGER IF EXISTS Trigger_SetMaxAnswer;
 DELIMITER $$
 	CREATE TRIGGER Trigger_SetMaxAnswer
@@ -144,6 +146,30 @@ DELIMITER $$
             SET MESSAGE_TEXT = 'Cannot insert more data please check again!';
         END IF;    
     END$$
+DELIMITER ;
+
+# Tự hiểu theo chỉnh sửa : Đúng theo hướng dẫn đề bài
+DROP TRIGGER IF EXISTS Trigger_SetMaxAnswer;
+DELIMITER $$
+	CREATE TRIGGER Trigger_SetMaxAnswer
+    BEFORE INSERT ON Answer
+    FOR EACH ROW
+    BEGIN
+		DECLARE CountAnswer TINYINT UNSIGNED;
+        DECLARE CountCorrectAnswer TINYINT UNSIGNED;
+			SELECT 	COUNT(AnswerID) INTO CountAnswer
+            FROM 	Answer
+            WHERE 	QuestionID = NEW.QuestionID;
+            
+			SELECT 	COUNT(1) INTO CountCorrectAnswer
+            FROM 	Answer
+            WHERE 	QuestionID = NEW.QuestionID AND isCorrect = NEW.isCorrect;
+            
+		IF CountAnswer >= 4 OR CountCorrectAnswer >= 2 THEN 
+			SIGNAL SQLSTATE '12345'
+			SET MESSAGE_TEXT = 'Cannot insert data';
+		END IF;
+	END $$
 DELIMITER ;
 
 INSERT INTO Answer (`Content`, `QuestionID`, `isCorrect`) 
@@ -197,10 +223,10 @@ DELIMITER $$
 	FOR EACH ROW
 	BEGIN
 		DECLARE v_CountQuesByID TINYINT;
-		SET v_CountQuesByID = -1;
+		SET 	v_CountQuesByID = -1;
 		SELECT 	COUNT(1) INTO v_CountQuesByID 
         FROM 	ExamQuestion Ex 
-        WHERE Ex.QuestionID = NEW.QuestionID;
+        WHERE 	Ex.QuestionID = NEW.QuestionID;
 		IF (v_CountQuesByID != -1) THEN
 			SIGNAL SQLSTATE '12345'
 			SET MESSAGE_TEXT = 'Cant Update This Question';
@@ -210,7 +236,6 @@ DELIMITER ;
 UPDATE 	Question 
 SET 	`Content` = 'Question VTI 2599 lL6 1' 
 WHERE 	(`QuestionID` = '1');
-
 # Trường hợp DELETE :
 DROP TRIGGER IF EXISTS Trg_CheckBefDeleteQues;
 DELIMITER $$
