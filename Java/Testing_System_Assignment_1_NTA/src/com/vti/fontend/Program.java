@@ -34,7 +34,7 @@ public class Program {
 		
 		Position pos3 = new Position();
 		pos3.id = 3;
-		pos3.name = PositionName.Scrun_Master;
+		pos3.name = PositionName.Scrum_Master;
 		
 		// Create Group
 		Group group1 = new Group();

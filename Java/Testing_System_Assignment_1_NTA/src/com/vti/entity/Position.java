@@ -5,6 +5,6 @@ public class Position {
 	public PositionName name;
 	
 	public enum PositionName {
-		Dev, Test, Scrun_Master, PM
+		Dev, Test, Scrum_Master, PM
 	}
 }
